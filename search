@@ -9,7 +9,9 @@ pgrep -x dmenu && exit
 
 list="$(printf '%s\n' "Google" "M-W Dictionary" "M-W Thesaurus" "Weblio" "Arch Wiki" "Youtube" "Reddit" "Imgur")"
 engine=$(echo "$list" | dmenu -i -l 5 -p "Search in:")
+[ -z $engine ] && exit
 question=$($1 | dmenu -i -p "Type your search content: ")
+[ -z $question ] && exit
 
 case "$engine" in
     "Google") $browser "https://www.google.com/search?q=$question" ;;

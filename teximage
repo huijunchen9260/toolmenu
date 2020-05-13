@@ -33,10 +33,14 @@ template () {
 	'\end{document}' > "$TMPDir/typeset.tex"
 }
 
+opener () {
+    [ -n "$TERMINAL" ] && $TERMINAL -e "${EDITOR:-vi}" "$1" || xdg-open "$1"
+}
+
 choice=$(printf '%s\n' "new content" "clear" "$texlist" | sed '/^$/ d' | cut -d '/' -f 4 | dmenu -i -l 10 -p "Edit: ")
 case "$choice" in
     "new content"|*.tex)
-	[ "$choice" = "new content" ] && $TERMINAL -e ${EDITOR:-vi} "$TMPDir/$TMPName.tex" || $TERMINAL -e ${EDITOR:-vi} "$TMPDir/$choice"
+	[ "$choice" = "new content" ] && opener "$TMPDir/$TMPName.tex" || opener "$TMPDir/$choice"
 	[ "$choice" = "new content" ] && template "$(cat -u $TMPDir/$TMPName.tex)" || template "$(cat -u $TMPDir/$choice)"
 	tex2svg "$TMPDir/typeset"
 	[ "$(printf "Yes\\nNo" | dmenu -i -p "Trasform svg image to png?")" = "Yes" ] && svg2png "$TMPDir/typeset"
