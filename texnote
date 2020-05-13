@@ -1,0 +1,42 @@
+#!/bin/sh
+# Dependency: convert, pdfcrop, pdflatex, xclip
+# Usage: Typeset latex content into png
+
+TMPDir="/tmp/texnote"
+[ ! -d "$TMPDir" ] && mkdir -p "$TMPDir"
+texlist="$(printf '%s\n' $TMPDir/*.tex | grep -v "typeset.tex\|\*.tex" | sort -r)"
+texnum="$(printf '%s\n' $TMPDir/*.tex | grep -v "typeset.tex\|\*.tex" | wc -l)"
+TMPName="doc-$texnum"
+
+tex2png () {
+    cd "$TMPDir" && pdflatex "$1.tex" "$1.pdf" && pdfcrop "$1.pdf" "$1.pdf"
+    convert -alpha "$2" -density 1200 "$1.pdf" -quality 300 "$1.png"
+    xclip -selection clipboard -t image/png -i "$1.png"
+}
+
+template () {
+    printf '%s\n' \
+	'\documentclass[preview]{standalone}' \
+	'\usepackage[utf8]{inputenc}' \
+	'\usepackage[T1]{fontenc}' \
+	'\usepackage{textcomp}' \
+	'\usepackage{amsmath, amssymb, amsthm}' \
+	'\begin{document}' \
+	'' \
+	"$1" \
+	'' \
+	'\end{document}' > "$TMPDir/typeset.tex"
+}
+
+choice=$(printf '%s\n' "new content" "clear" "$texlist" | sed '/^$/ d' | cut -d '/' -f 4 | dmenu -i -l 10 -p "Note: ")
+case "$choice" in
+    "new content"|*.tex)
+	alpha=$(printf '%s\n' "on" "off" | dmenu -i -p "Transparency?")
+	[ -z "$alpha" ] && exit
+	[ "$choice" = "new content" ] && $TERMINAL -e ${EDITOR:-vi} "$TMPDir/$TMPName.tex" || $TERMINAL -e ${EDITOR:-vi} "$TMPDir/$choice"
+	[ "$choice" = "new content" ] && template "$(cat -u $TMPDir/$TMPName.tex)" || template "$(cat -u $TMPDir/$choice)"
+	tex2png "$TMPDir/typeset" "$alpha"
+	;;
+    "clear") rm -rf $TMPDir/* ;;
+    *) exit ;;
+esac

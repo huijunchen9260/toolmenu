@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# Toolbox by dmenu. Tools no need to open terminal.
+IFS='
+'
+TMP="$(which toolmenu)"
+toolpath="$(printf '%s' "${TMP%%/${TMP##*/}}")"
+toolmenu () {
+    for file in $toolpath/*; do
+	[ -x $file ] && [ $file != "$toolpath/toolmenu" ] && printf '%s\n' "${file##*/}"
+    done
+}
+tools=$(toolmenu | dmenu -i -l 5 -p "Toolbox: ")
+unset IFS
+
+$tools
+
+
+

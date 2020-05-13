@@ -1,0 +1,22 @@
+#!/bin/sh
+# Dependency: R for calculation;
+#     	      xclip for copying to clipboard
+# Usage: calculation in dmenu
+
+NotiPrompt () { # Usage NotiPrompt [MSG]
+    dmenu -fn "Monospace-25" -sb "#d79921" -sf "#1d2021" -nf "#000000" -nb "#000000" -p "$1" <&-
+}
+
+while true; do
+	Operation=$(dmenu -p "Calculate: " <&-)
+	[ -z $Operation ] && break
+	Result=$(Rscript -e "$Operation")
+	Result=${Result#*] }
+	[ -z "$Result" ] && NotiPrompt "Wrong Input!" && continue
+	Action=$(printf '%s\n' "Copy" "Recalc" | dmenu -i -p "$Result")
+	case "$Action" in
+	    "Copy") printf '%s' "$Result" | xclip -selection clipboard && NotiPrompt "$Result copied" && break ;;
+	    "Recalc") continue ;;
+	    *) break ;;
+	esac
+done

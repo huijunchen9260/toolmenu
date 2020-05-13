@@ -1,0 +1,23 @@
+#!/bin/sh
+# Gives a dmenu prompt to search on the Internet.
+# Without input, will open DuckDuckGo.com.
+# URIS will be directly handed to the browser.
+# Anything else, it search it.
+browser=${BROWSER:-xdg-open}
+
+pgrep -x dmenu && exit
+
+list="$(printf '%s\n' "Google" "M-W Dictionary" "M-W Thesaurus" "Weblio" "Arch Wiki" "Youtube" "Reddit" "Imgur")"
+engine=$(echo "$list" | dmenu -i -l 5 -p "Search in:")
+question=$($1 | dmenu -i -p "Type your search content: ")
+
+case "$engine" in
+    "Google") $browser "https://www.google.com/search?q=$question" ;;
+    "M-W Dictionary") $browser "https://www.merriam-webster.com/dictionary/$question" ;;
+    "M-W Thesaurus") $browser "https://www.merriam-webster.com/thesaurus/$question" ;;
+    "Weblio") $browser "https://www.weblio.jp/content/$question" ;;
+    "Arch Wiki") $browser "https://wiki.archlinux.org/index.php/$question" ;;
+    "Youtube") $browser "https://www.youtube.com/results?search_query=$question" ;;
+    "Reddit") $browser "https://www.reddit.com/search/?q=$question" ;;
+    "Imgur") $browser "https://imgur.com/search?q=$question" ;;
+esac

@@ -1,0 +1,3 @@
+#!/bin/sh
+
+man -k . | grep '(1p)' | dmenu -i -l 10 -p "Search POSIX man pages" | cut -d ' ' -f 1 | xargs -I {} $TERMINAL -e man 1p "{}" &

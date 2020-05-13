@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# Modify xinput devices in dmenu
+
+NotiPrompt () { # Usage NotiPrompt [MSG]
+    dmenu -fn "Monospace-25" -sb "#d79921" -sf "#1d2021" -nf "#000000" -nb "#000000" -p "$1" <&-
+}
+
+list="$(xinput --list | sed "s/^[^a-zA-Z]*//g; s/\t/  /g" | dmenu -i -l 10 -p "Choose device:")"
+[ -z $list ] && exit
+id=$(printf '%s' "$list" | cut -d '=' -f 2 | cut -d ' ' -f 1)
+props=$(xinput list-props "$id" | sed "1 d; s/\t//g; s/ (/ - /g; s/):[\s\t]*/ - /g" | dmenu -i -l 10 -p "Choose properties ")
+[ -z $props ] && exit
+propOldVal=${props##* - }
+props=${props% - *}
+propID=${props##* - }
+propName=${props%% - *}
+propValue=$(dmenu -i -p "Choose value: $propName (Original value: $propOldVal)" <&-)
+[ -z $propValue ] && exit
+xinput set-prop $id $propID $propValue && NotiPrompt "Set $propName successfully" || NotiPrompt "Fail to set $propName"
+

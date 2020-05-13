@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# Offline Arch Wiki
+wikipath="/usr/share/doc/arch-wiki/html/en"
+wikimenu () {
+    for file in $wikipath/*; do
+	[ -f $file ] && printf '%s\n' "${file##*/}"
+    done
+}
+wikipage=$(wikimenu | dmenu -i -l 10 -p "Choose Arch Wiki page: ")
+[ -n "$wikipage" ] && ${BROWSER:-xdg-open} $wikipath/$wikipage
+

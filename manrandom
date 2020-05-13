@@ -1,0 +1,5 @@
+#!/bin/sh
+
+find /usr/share/man/man1/ -type f | shuf -n 1 | cut -d '/' -f 6 | cut -d '.' -f 1-2 | xargs -I {} $TERMINAL -e "man" "{}"
+
+

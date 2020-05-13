@@ -1,0 +1,13 @@
+#!/bin/sh
+# Dependency: dmenu
+# Usage: Turn on/off lid-suspend
+
+NotiPrompt () { # Usage NotiPrompt [MSG]
+    dmenu -f -fn "Monospace-25" -sb "#d79921" -sf "#1d2021" -nf "#000000" -nb "#000000" -p "$1" <&-
+}
+
+id=$(ps -eaf | grep "systemd-inhibit --what=handle-lid-switch sleep" | grep -v grep | cut -d ' ' -f 6)
+case "$id" in
+    [0-9]*) NotiPrompt "Lid-suspend on"; kill "$id" ;;
+    *) NotiPrompt "Lid-suspend off"; systemd-inhibit --what=handle-lid-switch sleep 1d ;;
+esac

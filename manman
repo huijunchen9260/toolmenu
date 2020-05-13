@@ -1,0 +1,4 @@
+#!/bin/sh
+
+man -k . | dmenu -i -l 10 -p "Search man pages" | cut -d ' ' -f 1 | xargs -I {} $TERMINAL -e man "{}" &
+
