@@ -63,6 +63,6 @@ Usage: search in websites
 
 ### teximage
 
-Dependency: inkscape, pdf2svg, pdfcrop, pdflatex, xclip
+Dependency: `inkscape`, `pdf2svg`, `pdfcrop`, `pdflatex`, `xclip`
 
 Usage: Typeset latex content into svg/png
