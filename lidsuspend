@@ -1,4 +1,5 @@
 #!/bin/sh
+
 # Dependency: dmenu
 # Usage: Turn on/off lid-suspend
 

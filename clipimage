@@ -1,0 +1,4 @@
+#!/bin/sh
+
+inkscape --export-dpi 1200 "$1.svg" --export-filename "$1.png"
+xclip -selection clipboard -t image/png -i "$1.png"

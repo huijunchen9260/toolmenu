@@ -1,6 +1,7 @@
 #!/bin/sh
 
-# Modify xinput devices in dmenu
+# Dependency: xinput
+# Usage: Modify xinput devices in dmenu
 
 NotiPrompt () { # Usage NotiPrompt [MSG]
     dmenu -fn "Monospace-25" -sb "#d79921" -sf "#1d2021" -nf "#000000" -nb "#000000" -p "$1" <&-
@@ -18,4 +19,3 @@ propName=${props%% - *}
 propValue=$(dmenu -i -p "Choose value: $propName (Original value: $propOldVal)" <&-)
 [ -z $propValue ] && exit
 xinput set-prop $id $propID $propValue && NotiPrompt "Set $propName successfully" || NotiPrompt "Fail to set $propName"
-
