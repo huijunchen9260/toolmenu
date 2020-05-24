@@ -92,7 +92,7 @@ Required latex preamble:
 \newcommand{\inkfig}[1]{ \def\svgwidth{\columnwidth} \import{./figures/}{#1.pdf_tex} }
 ```
 
-Recommend code snippet:
+Recommend ultisnip code snippet:
 
 ```
 snippet inkfig "Figure environment" b
@@ -108,6 +108,6 @@ endsnippet
 Recommend `.vimrc` setup
 
 ```vimL
-autocmd FileType tex inoremap <leader>i <ESC>vi{y:!inkfig -d %:p:h -n <C-R>+<CR><ESC><S-V>
+autocmd FileType tex inoremap <leader>i <ESC>vi{y:!inkfig -d %:p:h -n <C-R>+<CR>
 autocmd FileType tex nnoremap <leader>i :!inkfig -d %:p:h<CR>
 ```
