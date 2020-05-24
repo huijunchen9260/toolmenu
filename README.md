@@ -63,6 +63,51 @@ Usage: search in websites
 
 ### teximage
 
-Dependency: `inkscape`, `pdf2svg`, `pdfcrop`, `pdflatex`, `xclip`
+Dependency: `inkscape`, `pdf2svg`, `pdfcrop`, `pdflatex`, `xclip`, `dmenu`/`fzf`
 
 Usage: Typeset latex content into svg/png
+
+### inkfig
+
+Dependency: `inkscape`, `dmenu`
+
+Usage: Automate latex and inkscape workflow.
+
+```
+Arguments:
+-d: Specify project directory
+-n: Specify imgname
+-h: print help
+```
+
+Without `-n` argument, `inkfig` allows user to edit existing svg files.
+
+Required latex preamble:
+
+```tex
+\usepackage{import}
+\usepackage{pdfpages}
+\usepackage{transparent}
+\usepackage{xcolor}
+\newcommand{\inkfig}[1]{ \def\svgwidth{\columnwidth} \import{./figures/}{#1.pdf_tex} }
+```
+
+Recommend code snippet:
+
+```
+snippet inkfig "Figure environment" b
+\begin{figure}[${2:ht}]
+	\centering
+	\inkfig{${3:${1/\W+/-/g}}}
+	\caption{${1:${VISUAL}}}
+	\label{fig:${4:${1/\W+/-/g}}}
+\end{figure}
+endsnippet
+```
+
+Recommend `.vimrc` setup
+
+```vimL
+autocmd FileType tex inoremap <leader>i <ESC>vi{y:!inkfig -d %:p:h -n <C-R>+<CR><ESC><S-V>
+autocmd FileType tex nnoremap <leader>i :!inkfig -d %:p:h<CR>
+```

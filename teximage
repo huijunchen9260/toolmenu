@@ -1,5 +1,5 @@
 #!/bin/sh
-# Dependency: inkscape, pdf2svg, pdfcrop, pdflatex, xclip
+# Dependency: dmenu/fzf, inkscape, pdf2svg, pdfcrop, pdflatex, xclip
 # Usage: Typeset latex content into svg/png
 
 TMPDir="/tmp/teximage"
@@ -7,6 +7,10 @@ TMPDir="/tmp/teximage"
 texlist="$(printf '%s\n' $TMPDir/*.tex | grep -v "typeset.tex\|\*.tex" | sort -r)"
 texnum="$(printf '%s\n' $TMPDir/*.tex | grep -v "typeset.tex\|\*.tex" | wc -l)"
 TMPName="doc-$texnum"
+
+tex2clip () {
+    xclip -selection clipboard < "$1"
+}
 
 tex2svg () {
     cd "$TMPDir" && pdflatex "$1.tex" "$1.pdf" && pdfcrop "$1.pdf" "$1.pdf"
@@ -34,16 +38,26 @@ template () {
 }
 
 opener () {
-    [ -n "$TERMINAL" ] && $TERMINAL -e "${EDITOR:-vi}" "$1" || xdg-open "$1"
+    [ -n "$TERMINAL" ] && $TERMINAL -e "${EDITOR:-vi}" "$1" || ${opener:-xdg-open} "$1"
+    # Comment out above line and uncomment the line below to use fzf
+    # "${EDITOR:-vi}" "$1" || ${opener:-xdg-open} "$1"
 }
 
-choice=$(printf '%s\n' "new content" "clear" "$texlist" | sed '/^$/ d' | cut -d '/' -f 4 | dmenu -i -l 10 -p "Edit: ")
+choice=$(printf '%s\n' "new content" "clear" "$texlist" | sed '/^$/ d; s/^.*\///' | dmenu -i -l 10 -p "Edit: ")
+# Comment out above line and uncomment the line below to use fzf
+# choice=$(printf '%s\n' "new content" "clear" "$texlist" | sed '/^$/ d; s/^.*\///' | fzf -i --layout=reverse --prompt "Edit: ")
 case "$choice" in
     "new content"|*.tex)
 	[ "$choice" = "new content" ] && opener "$TMPDir/$TMPName.tex" || opener "$TMPDir/$choice"
 	[ "$choice" = "new content" ] && template "$(cat -u $TMPDir/$TMPName.tex)" || template "$(cat -u $TMPDir/$choice)"
-	tex2svg "$TMPDir/typeset"
-	[ "$(printf "Yes\\nNo" | dmenu -i -p "Trasform svg image to png?")" = "Yes" ] && svg2png "$TMPDir/typeset"
+	output=$(printf '%s\n' "clipboard (tex code)" "svg" "png" | dmenu -i -l 5 -p "Output: ")
+	# Comment out above line and uncomment the line below to use fzf
+	# output=$(printf '%s\n' "clipboard (tex code)" "svg" "png" | fzf -i --layout=reverse --prompt "Output: ")
+	case "$output" in
+	    "clipboard (tex code)") [ "$choice" = "new content" ] && tex2clip "$TMPDir/$TMPName.tex" || tex2clip "$TMPDir/$choice" ;;
+	    "svg") tex2svg "$TMPDir/typeset" ;;
+	    "png") svg2png "$TMPDir/typeset" ;;
+	esac
 	;;
     "clear") rm -rf $TMPDir/* ;;
     *) exit ;;
