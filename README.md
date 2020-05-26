@@ -20,7 +20,11 @@ Dependency: `dmenu`, `Rscript`, `xclip`
 
 Usage: do simple calculation on dmenu.
 
-### inputmenu Dependency: `dmenu`, `xinput` Usage: Modify xinput devices in dmenu
+### inputmenu
+
+Dependency: `dmenu`, `xinput`
+
+Usage: Modify xinput devices in dmenu
 
 ### lidsuspend
 
