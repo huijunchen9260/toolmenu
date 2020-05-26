@@ -3,11 +3,12 @@
 # Dependency: Inkscape, dmenu
 
 # Options and variables
-while getopts ":d:n:h" o; do
+while getopts ":d:n:p:h" o; do
     case "${o}" in
-	h) printf '%s\n' "Arguments:" "-d: Specify project directory" "-n: Specify imgname" && exit ;;
+	h) printf '%s\n' "Arguments:" "-d: Specify project directory" "-n: Specify imgname" "-p: use menu system other than dmenu" && exit ;;
 	d) DIR=${OPTARG} ;;
 	n) imgname=${OPTARG} ;;
+	p) prog=${OPTARG} ;;
 	*) printf "Invalid option: -%s\\n" "$OPTARG" && exit ;;
     esac
 done
@@ -88,6 +89,13 @@ template () {
 	'</svg>' > "$DIR/figures/$imgname.svg" && inkscape "$DIR/figures/$imgname.svg"
 }
 
+menu () {
+    case "$prog" in
+	""|"dmenu") dmenu -i -l 5 -p "$1" ;;
+	"fzf") fzf -i --layout=reverse --prompt "$1" ;;
+    esac
+}
+
 inktex () {
     [ ! -f "$DIR/figures/$imgname.svg" ] && template || inkscape "$DIR/figures/$imgname.svg"
     svg2pdf "$DIR/figures/$imgname"
@@ -95,14 +103,15 @@ inktex () {
 
 inkmenu () {
     imglist="$(printf '%s\n' $DIR/figures/*.svg | grep -v "\*.svg")"
-    choice="$(printf '%s\n' "remove" "$imglist" | sed '/^$/ d; s/^.*\///; s/\.svg$//' | dmenu -i -l 10 -p "Select imgs or Type img name: ")"
+    choice="$(printf '%s\n' "remove" "$imglist" | sed '/^$/ d; s/^.*\///; s/\.svg$//' | menu "Select imgs or Type img name: ")"
     [ -z "$choice" ] && exit
     case "$choice" in
 	"remove")
-	    imgdelete=$(printf '%s\n' "$imglist" | sed '/^$/ d; s/^.*\///; s/\.svg$//' | dmenu -i -l 10 -p "Delete which figure:")
+	    imgdelete=$(printf '%s\n' "$imglist" | sed '/^$/ d; s/^.*\///; s/\.svg$//' | menu "Delete which figure:")
 	    [ -n "$imgdelete" ] && rm $DIR/figures/$imgdelete.* || exit 1
 	    ;;
 	*)
+	    imgname="$choice"
 	    inktex
 	    ;;
     esac

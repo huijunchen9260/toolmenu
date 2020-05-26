@@ -7,6 +7,7 @@ A simple toolbox using dmenu with corresponding scripts
 Put any script in the same directory with `toolmenu`, and use `toolmenu` to call them in `dmenu` prompt.
 
 ## Scripts
+
 ### archwiki
 
 Dependency: `arch-wiki-doc`(use `sudo pacman -S arch-wiki-doc` to install), `dmenu`
@@ -19,11 +20,7 @@ Dependency: `dmenu`, `Rscript`, `xclip`
 
 Usage: do simple calculation on dmenu.
 
-### inputmenu
-
-Dependency: `dmenu`, `xinput`
-
-Usage: Modify xinput devices in dmenu
+### inputmenu Dependency: `dmenu`, `xinput` Usage: Modify xinput devices in dmenu
 
 ### lidsuspend
 
@@ -89,21 +86,28 @@ Required latex preamble:
 \usepackage{pdfpages}
 \usepackage{transparent}
 \usepackage{xcolor}
-\newcommand{\inkfig}[1]{ \def\svgwidth{\columnwidth} \import{./figures/}{#1.pdf_tex} }
+
+\newcommand{\incfig}[2][1]{%
+    \def\svgwidth{#1\columnwidth}
+    \import{./figures/}{#2.pdf_tex}
+}
+
+\pdfsuppresswarningpagegroup=1
 ```
 
 Recommend ultisnip code snippet:
 
 ```
 snippet inkfig "Figure environment" b
-\begin{figure}[${2:ht}]
+\begin{figure}[${3:ht}]
 	\centering
-	\inkfig{${3:${1/\W+/-/g}}}
+	\inkfig[$2]{${4:${1/\W+/-/g}}}
 	\caption{${1:${VISUAL}}}
-	\label{fig:${4:${1/\W+/-/g}}}
+	\label{fig:${5:${1/\W+/-/g}}}
 \end{figure}
 endsnippet
 ```
+Use `$2` to adjust the percentage of figure width relative to the page width.
 
 Recommend `.vimrc` setup
 

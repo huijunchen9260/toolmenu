@@ -2,11 +2,30 @@
 # Dependency: dmenu/fzf, inkscape, pdf2svg, pdfcrop, pdflatex, xclip
 # Usage: Typeset latex content into svg/png
 
+# Options and variables
+while getopts ":a:p:o:h" result; do
+    case "${result}" in
+	h) printf '%s\n' "Arguments:" "-a: Action: 'new content' or 'clear'" "-p: use menu system other than dmenu" "-o: output as 'tex'/'svg'/'png' to clipboard" && exit ;;
+	a) choice=${OPTARG} ;;
+	p) prog=${OPTARG} ;;
+	o) output=${OPTARG} ;;
+	*) printf "Invalid option: -%s\\n" "$OPTARG" && exit ;;
+    esac
+done
+
 TMPDir="/tmp/teximage"
 [ ! -d "$TMPDir" ] && mkdir -p "$TMPDir"
 texlist="$(printf '%s\n' $TMPDir/*.tex | grep -v "typeset.tex\|\*.tex" | sort -r)"
 texnum="$(printf '%s\n' $TMPDir/*.tex | grep -v "typeset.tex\|\*.tex" | wc -l)"
+texnum="$(printf '%03d' "$texnum")"
 TMPName="doc-$texnum"
+
+menu () {
+    case "$prog" in
+	"") dmenu -i -l 5 -p "$1" ;;
+	"fzf") fzf -i --layout=reverse --prompt "$1" ;;
+    esac
+}
 
 tex2clip () {
     xclip -selection clipboard < "$1"
@@ -18,7 +37,9 @@ tex2svg () {
     xclip -selection clipboard -t image/x-inkscape-svg -i "$1.svg"
 }
 
-svg2png () {
+tex2png () {
+    cd "$TMPDir" && pdflatex "$1.tex" "$1.pdf" && pdfcrop "$1.pdf" "$1.pdf"
+    pdf2svg "$1.pdf" "$1.svg"
     inkscape --export-dpi 1200 "$1.svg" --export-type=png --export-filename "$1.png"
     xclip -selection clipboard -t image/png -i "$1.png"
 }
@@ -38,25 +59,22 @@ template () {
 }
 
 opener () {
-    [ -n "$TERMINAL" ] && $TERMINAL -e "${EDITOR:-vi}" "$1" || ${opener:-xdg-open} "$1"
-    # Comment out above line and uncomment the line below to use fzf
-    # "${EDITOR:-vi}" "$1" || ${opener:-xdg-open} "$1"
+    case "$prog" in
+	"") [ -n "$TERMINAL" ] && $TERMINAL -e "${EDITOR:-vi}" "$1" || ${opener:-xdg-open} "$1" ;;
+	"fzf") "${EDITOR:-vi}" "$1" || ${opener:-xdg-open} "$1" ;;
+    esac
 }
 
-choice=$(printf '%s\n' "new content" "clear" "$texlist" | sed '/^$/ d; s/^.*\///' | dmenu -i -l 10 -p "Edit: ")
-# Comment out above line and uncomment the line below to use fzf
-# choice=$(printf '%s\n' "new content" "clear" "$texlist" | sed '/^$/ d; s/^.*\///' | fzf -i --layout=reverse --prompt "Edit: ")
+[ -z $choice ] && choice=$(printf '%s\n' "new content" "clear" "$texlist" | sed '/^$/ d; s/^.*\///' | menu "Edit: ")
 case "$choice" in
     "new content"|*.tex)
 	[ "$choice" = "new content" ] && opener "$TMPDir/$TMPName.tex" || opener "$TMPDir/$choice"
 	[ "$choice" = "new content" ] && template "$(cat -u $TMPDir/$TMPName.tex)" || template "$(cat -u $TMPDir/$choice)"
-	output=$(printf '%s\n' "clipboard (tex code)" "svg" "png" | dmenu -i -l 5 -p "Output: ")
-	# Comment out above line and uncomment the line below to use fzf
-	# output=$(printf '%s\n' "clipboard (tex code)" "svg" "png" | fzf -i --layout=reverse --prompt "Output: ")
+	[ -z $output ] && output=$(printf '%s\n' "tex" "svg" "png" | menu "Output: ")
 	case "$output" in
-	    "clipboard (tex code)") [ "$choice" = "new content" ] && tex2clip "$TMPDir/$TMPName.tex" || tex2clip "$TMPDir/$choice" ;;
+	    "tex") [ "$choice" = "new content" ] && tex2clip "$TMPDir/$TMPName.tex" || tex2clip "$TMPDir/$choice" ;;
 	    "svg") tex2svg "$TMPDir/typeset" ;;
-	    "png") svg2png "$TMPDir/typeset" ;;
+	    "png") tex2png "$TMPDir/typeset" ;;
 	esac
 	;;
     "clear") rm -rf $TMPDir/* ;;
