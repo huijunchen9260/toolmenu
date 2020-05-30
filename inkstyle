@@ -11,7 +11,7 @@ Help Options:
   -h					Show help options
 Style Options:
   -a, 					Create end-side arrow
-  -A, 					Create both start-side and end side arrow
+  -A, 					Create both start-side and end-side arrow
   -f, 					Fill with 0 opacity
   -F, 					Fill with middle opacity
   -b, 					Fill with high opacity

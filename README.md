@@ -80,8 +80,7 @@ Arguments:
 
 Dependency: `inkscape`, `dmenu`
 
-Usage: Automate latex and inkscape workflow. [This link](https://streamable.com/lrdmsu) demonstrate the usage.
-
+Usage: Automate latex and inkscape workflow.
 
 ```
 Arguments:
@@ -101,7 +100,7 @@ Required latex preamble:
 \usepackage{transparent}
 \usepackage{xcolor}
 
-\newcommand{\incfig}[2][1]{%
+\newcommand{\inkfig}[2][1]{%
     \def\svgwidth{#1\columnwidth}
     \import{./figures/}{#2.pdf_tex}
 }
@@ -136,7 +135,7 @@ autocmd FileType tex nnoremap <leader>i :!inkfig -d %:p:h<CR>
 
 `inkstyle` use command line options to apply inkscape styles. [This link](https://streamable.com/4vngts) demonstrate the usage.
 
-```sh
+```
 Usage:
 inkstyle [OPTIONS] [ARGS]
 
