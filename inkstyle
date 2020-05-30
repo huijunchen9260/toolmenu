@@ -1,0 +1,129 @@
+#!/bin/sh
+
+# Dependency: inkscape
+
+usage () {
+cat << 	EOF
+Usage:
+inkstyle [OPTIONS] [ARGS]
+
+Help Options:
+  -h					Show help options
+Style Options:
+  -a, 					Create end-side arrow
+  -A, 					Create both start-side and end side arrow
+  -f, 					Fill with 0 opacity
+  -F, 					Fill with middle opacity
+  -b, 					Fill with high opacity
+  -B, 					Fill with perfect opacity
+  -c, 					Change stroke color, require argument
+  -C, 					Change fill color, require argument
+  -d, 					Dash stroke style 1
+  -D, 					Dash stroke style 2
+  -x, 					Dash stroke style 3
+  -X, 					Dash stroke style 4
+  -w, 					Change stroke to normal width
+  -W, 					Change stroke to middle width
+  -t, 					Change stroke to thick width
+  -T, 					Change stroke to very thick width
+  -r, 					Restore to default style
+EOF
+}
+
+w='0.56'
+
+# calculate/print floating number
+calc () { awk "BEGIN { print $*}"; }
+
+# Options and arguments
+while getopts "c:C:dDxXfFbBaAwWtTrh" result; do
+    case "${result}" in
+	h) usage && exit ;;
+	a) marker_end="Arrow1Mend"; keeplist="${keeplist} a";;
+	A) marker_start="Arrow1Mstart"; marker_end="Arrow1Mend"; keeplist="${keeplist} A" ;;
+	c) stroke_color=${OPTARG}; keeplist="${keeplist} c" ;;
+	C) fill_color=${OPTARG}; keeplist="${keeplist} C" ;;
+	d) stroke_dash="$(calc $w*0.14800002), $(calc $w*0.44400006)"; keeplist="${keeplist} d" ;;
+	D) stroke_dash="$(calc $w*1.77600026), $(calc $w*0.14800002)"; keeplist="${keeplist} D" ;;
+	x) stroke_dash="$(calc $w*1.99999577), $(calc $w*0.99999788), $(calc $w*0.49999894), $(calc $w*0.99999788)"; keeplist="${keeplist} x" ;;
+	X) stroke_dash="$(calc $w*1.18533334), $(calc $w*0.29633333), $(calc $w*0.14816667), $(calc $w*0.29633333)"; keeplist="${keeplist} X" ;;
+	f) fill_opacity=0; keeplist="${keeplist} f" ;;
+	F) fill_opacity=0.3; keeplist="${keeplist} F" ;;
+	b) fill_opacity=0.7; keeplist="${keeplist} b" ;;
+	B) fill_opacity=1; keeplist="${keeplist} B" ;;
+	w) stroke_width=$(calc $w); keeplist="${keeplist} w" ;;
+	W) stroke_width=$(calc 2*$w); keeplist="${keeplist} W" ;;
+	t) stroke_width=$(calc 3*$w); keeplist="${keeplist} t" ;;
+	T) stroke_width=$(calc 4*$w); keeplist="${keeplist} T" ;;
+	r) keeplist="${keeplist} r" ;;
+	\?) printf "Invalid option: -%s\\n" "$OPTARG"; exit 1 ;;
+	:) echo "Option -$OPTARG requires an argument."; exit 1 ;;
+    esac
+done
+
+arrow () {
+    marker_list="$marker_start $marker_end"
+    for element in $marker_list; do
+	marker_style="$(printf '%s\n' "$marker_style" \
+	    '<marker' \
+	    'scape:isstock="true"' \
+	    'style="overflow:visible;"' \
+	    "id=\"$element\"" \
+	    'refX="0.0"' \
+	    'refY="0.0"' \
+	    'orient="auto"' \
+	    "inkscape:stockid=\"$element\">" \
+	    '<path' \
+	    "transform=\"scale(0.4) $([ "$element" = "Arrow1Mend" ] && echo "rotate(180)") translate(10,0)\"" \
+	    'style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1;fill:#000000;fill-opacity:1"' \
+	    'd="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "' \
+	    "id=\"path-$(od -An -N2 -i /dev/random | cut -d ' ' -f8)\" />" \
+	    '</marker>')"
+    done
+    arrow_def="$(printf '%s\n' \
+	'<defs' \
+	"id=\"defs$(od -An -N2 -i /dev/random | cut -d ' ' -f8)\">" \
+	"$marker_style" \
+	'</defs>')"
+}
+
+style () {
+    style=
+    for element in $keeplist; do
+	case $element in
+	    r) style=$(printf '%s\n' "$style" "marker-start:url(#${marker_start:-none});" "marker-end:url(#${marker_end:-none});" "fill:${fill_color:-black};" "fill-opacity:${fill_opacity:-0}" "stroke-color:${stroke_color:-black};" "stroke-width:$(calc $w);" "stroke-dasharray:${stroke_dash:-0}");;
+	    a) style=$(printf '%s\n' "$style" "marker-end:url(#$marker_end);") ;;
+	    A) style=$(printf '%s\n' "$style" "marker-start:url(#$marker_start);" "marker-end:url(#$marker_end);") ;;
+	    C|f|F|b|B) style=$(printf '%s\n' "$style" "fill:${fill_color:-black};" "fill-opacity:$(calc ${fill_opacity:-0.2});") ;;
+	    c) style=$(printf '%s\n' "$style" "stroke-color:$stroke_color;") ;;
+	    w|W|t|T) style=$(printf '%s\n' "$style" "stroke-width:$(calc $stroke_width | tr ' ' ',');") ;;
+	    d|D|x|X) style=$(printf '%s\n' "$style" "stroke-dasharray:$(calc $stroke_dash | tr ' ' ',');") ;;
+	esac
+    done
+}
+
+template () {
+    printf '%s\n' \
+	'<?xml version="1.0" encoding="UTF-8" standalone="no"?>' \
+	'<svg>' \
+	"$arrow_def" \
+	'<inkscape:clipboard' \
+	'style="' \
+	"$style" \
+	"stroke-linecap:butt;" \
+	"stroke-linejoin:miter;" \
+	"stroke-miterlimit:4;" \
+	"stroke-dashoffset:0;" \
+	"stroke-opacity:1;" \
+	"stop-color:black;" \
+	"stop-opacity:1" \
+	'"' \
+	'/>' \
+	'</svg>' | xclip -selection clipboard -t image/x-inkscape-svg -i
+}
+
+# Main #
+
+style
+arrow
+template

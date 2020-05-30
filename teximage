@@ -5,7 +5,7 @@
 # Options and variables
 while getopts ":a:p:o:h" result; do
     case "${result}" in
-	h) printf '%s\n' "Arguments:" "-a: Action: 'new content' or 'clear'" "-p: use menu system other than dmenu" "-o: output as 'tex'/'svg'/'png' to clipboard" && exit ;;
+	h) printf '%s\n' "Arguments:" "-a: Action: 'new content' or 'clear'" "-p: use menu system other than dmenu" "-o: output as 'tex'/'svg'/'png' to clipboard" "-h: print this help" && exit ;;
 	a) choice=${OPTARG} ;;
 	p) prog=${OPTARG} ;;
 	o) output=${OPTARG} ;;
@@ -60,7 +60,7 @@ template () {
 
 opener () {
     case "$prog" in
-	"") [ -n "$TERMINAL" ] && $TERMINAL -e "${EDITOR:-vi}" "$1" || ${opener:-xdg-open} "$1" ;;
+	""|"dmenu") [ -n "$TERMINAL" ] && $TERMINAL -e "${EDITOR:-vi}" "$1" || ${opener:-xdg-open} "$1" ;;
 	"fzf") "${EDITOR:-vi}" "$1" || ${opener:-xdg-open} "$1" ;;
     esac
 }

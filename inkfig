@@ -5,7 +5,7 @@
 # Options and variables
 while getopts ":d:n:p:h" o; do
     case "${o}" in
-	h) printf '%s\n' "Arguments:" "-d: Specify project directory" "-n: Specify imgname" "-p: use menu system other than dmenu" && exit ;;
+	h) printf '%s\n' "Arguments:" "-d: Specify project directory" "-n: Specify imgname" "-p: use menu system other than dmenu" "-h: print this help" && exit ;;
 	d) DIR=${OPTARG} ;;
 	n) imgname=${OPTARG} ;;
 	p) prog=${OPTARG} ;;

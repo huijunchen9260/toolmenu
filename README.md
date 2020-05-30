@@ -68,16 +68,26 @@ Dependency: `inkscape`, `pdf2svg`, `pdfcrop`, `pdflatex`, `xclip`, `dmenu`/`fzf`
 
 Usage: Typeset latex content into svg/png
 
+```
+Arguments:
+-a: Action: 'new content' or 'clear'
+-p: use menu system other than dmenu
+-o: output as 'tex'/'svg'/'png' to clipboard
+-h: print help
+```
+
 ### inkfig
 
 Dependency: `inkscape`, `dmenu`
 
-Usage: Automate latex and inkscape workflow.
+Usage: Automate latex and inkscape workflow. [This link](https://streamable.com/lrdmsu) demonstrate the usage.
+
 
 ```
 Arguments:
 -d: Specify project directory
 -n: Specify imgname
+-p: use menu system other than dmenu
 -h: print help
 ```
 
@@ -118,4 +128,36 @@ Recommend `.vimrc` setup
 ```vimL
 autocmd FileType tex inoremap <leader>i <ESC>vi{y:!inkfig -d %:p:h -n <C-R>+<CR>
 autocmd FileType tex nnoremap <leader>i :!inkfig -d %:p:h<CR>
+```
+
+### inkmenu and inkstyle
+
+`inkmenu` is the `dmenu` interface to control `inkstyle`.
+
+`inkstyle` use command line options to apply inkscape styles. [This link](https://streamable.com/4vngts) demonstrate the usage.
+
+```sh
+Usage:
+inkstyle [OPTIONS] [ARGS]
+
+Help Options:
+  -h					Show help options
+Style Options:
+  -a, 					Create end-side arrow
+  -A, 					Create both start-side and end side arrow
+  -f, 					Fill with 0 opacity
+  -F, 					Fill with middle opacity
+  -b, 					Fill with high opacity
+  -B, 					Fill with perfect opacity
+  -c, 					Change stroke color, require argument
+  -C, 					Change fill color, require argument
+  -d, 					Dash stroke style 1
+  -D, 					Dash stroke style 2
+  -x, 					Dash stroke style 3
+  -X, 					Dash stroke style 4
+  -w, 					Change stroke to normal width
+  -W, 					Change stroke to middle width
+  -t, 					Change stroke to thick width
+  -T, 					Change stroke to very thick width
+  -r, 					Restore to default style
 ```
