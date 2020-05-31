@@ -43,8 +43,8 @@ while getopts "c:C:dDxXfFbBaAwWtTrh" result; do
 	A) marker_start="Arrow1Mstart"; marker_end="Arrow1Mend"; keeplist="${keeplist} A" ;;
 	c) stroke_color=${OPTARG}; keeplist="${keeplist} c" ;;
 	C) fill_color=${OPTARG}; keeplist="${keeplist} C" ;;
-	d) stroke_dash="$(calc $w*0.14800002), $(calc $w*0.44400006)"; keeplist="${keeplist} d" ;;
-	D) stroke_dash="$(calc $w*1.77600026), $(calc $w*0.14800002)"; keeplist="${keeplist} D" ;;
+	d) stroke_dash="$(calc $w), $(calc $w)"; keeplist="${keeplist} d" ;;
+	D) stroke_dash="$(calc $w*2), $(calc $w)"; keeplist="${keeplist} D" ;;
 	x) stroke_dash="$(calc $w*1.99999577), $(calc $w*0.99999788), $(calc $w*0.49999894), $(calc $w*0.99999788)"; keeplist="${keeplist} x" ;;
 	X) stroke_dash="$(calc $w*1.18533334), $(calc $w*0.29633333), $(calc $w*0.14816667), $(calc $w*0.29633333)"; keeplist="${keeplist} X" ;;
 	f) fill_opacity=0; keeplist="${keeplist} f" ;;
@@ -91,11 +91,11 @@ style () {
     style=
     for element in $keeplist; do
 	case $element in
-	    r) style=$(printf '%s\n' "$style" "marker-start:url(#${marker_start:-none});" "marker-end:url(#${marker_end:-none});" "fill:${fill_color:-black};" "fill-opacity:${fill_opacity:-0}" "stroke-color:${stroke_color:-black};" "stroke-width:$(calc $w);" "stroke-dasharray:${stroke_dash:-0}");;
+	    r) style=$(printf '%s\n' "$style" "marker-start:url(#${marker_start:-none});" "marker-end:url(#${marker_end:-none});" "fill:${fill_color:-black};" "fill-opacity:${fill_opacity:-0}" "stroke:${stroke_color:-black};" "stroke-width:$(calc $w);" "stroke-dasharray:${stroke_dash:-0}");;
 	    a) style=$(printf '%s\n' "$style" "marker-end:url(#$marker_end);") ;;
 	    A) style=$(printf '%s\n' "$style" "marker-start:url(#$marker_start);" "marker-end:url(#$marker_end);") ;;
 	    C|f|F|b|B) style=$(printf '%s\n' "$style" "fill:${fill_color:-black};" "fill-opacity:$(calc ${fill_opacity:-0.2});") ;;
-	    c) style=$(printf '%s\n' "$style" "stroke-color:$stroke_color;") ;;
+	    c) style=$(printf '%s\n' "$style" "stroke:$stroke_color;") ;;
 	    w|W|t|T) style=$(printf '%s\n' "$style" "stroke-width:$(calc $stroke_width | tr ' ' ',');") ;;
 	    d|D|x|X) style=$(printf '%s\n' "$style" "stroke-dasharray:$(calc $stroke_dash | tr ' ' ',');") ;;
 	esac

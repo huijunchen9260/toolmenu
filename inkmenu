@@ -16,5 +16,3 @@ printf '%s' "$opt" | grep '[A-Za-z]' && opt="-$opt" || opt=
 
 inkstyle $opt $opt_sc $opt_fc
 xdotool key ctrl+shift+v
-
-

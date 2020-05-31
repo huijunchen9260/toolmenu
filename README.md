@@ -80,7 +80,7 @@ Arguments:
 
 Dependency: `inkscape`, `dmenu`
 
-Usage: Automate latex and inkscape workflow.
+Usage: Automate latex and inkscape workflow. [This link](https://streamable.com/lrdmsu) demonstrate the usage.
 
 ```
 Arguments:
