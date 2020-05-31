@@ -2,17 +2,40 @@
 
 # Dependency: inkstyle, dmenu, xdotool
 
-opt=$(dmenu -i -p "Inkscape style option: $(grep 'getopts' $(which inkstyle) | cut -d '"' -f 2)" <&-)
+objdir="${XDG_CONFIG_HOME:-$HOME/.config}/inkstyle/objects"
+opt=$(dmenu -i -p "Inkscape style option: $(grep 'getopts' $(which inkstyle) | cut -d '"' -f 2)" <&- | fold -w1 | paste -sd ' ')
 color="$(printf '%s\n' "black" "blue" "green" "red")"
-[ -n "$(printf '%s' "$opt" | grep -E "c")" ] &&
-    opt=$(printf '%s' "${opt#*c}" "${opt%%c*}") &&
-    arg_sc=$(printf '%s\n' "$color" | dmenu -i -p "Stroke color: ") &&
-    opt_sc="-c $arg_sc"
-[ -n "$(printf '%s' "$opt" | grep -E "C")" ] &&
-    opt=$(printf '%s' "${opt#*C}" "${opt%%C*}") &&
-    arg_fc=$(printf '%s\n' "$color" | dmenu -i -p "Fill color: ") &&
-    opt_fc="-C $arg_fc"
-printf '%s' "$opt" | grep '[A-Za-z]' && opt="-$opt" || opt=
 
-inkstyle $opt $opt_sc $opt_fc
-xdotool key ctrl+shift+v
+for element in $opt; do
+    case $element in
+	c) opt=$(printf '%s' "${opt#*c}" "${opt%%c*}") &&
+	    arg_sc=$(printf '%s\n' "$color" | dmenu -i -p "Stroke color: ") &&
+	    opt_sc="-c $arg_sc"
+	    ;;
+	C) opt=$(printf '%s' "${opt#*C}" "${opt%%C*}") &&
+	    arg_fc=$(printf '%s\n' "$color" | dmenu -i -p "Fill color: ") &&
+	    opt_fc="-C $arg_fc"
+	    ;;
+	p)  opt=$(printf '%s' "${opt#*p}" "${opt%%p*}") &&
+	    arg_save=$(dmenu -i -l 5 -p "Object name: " <&-) &&
+	    [ ! -f "$objdir"/"$arg_save".svg ] &&
+	    opt_save="-p $arg_save" ||
+	    dmenu -p "File exists; use -O option to overwrite." <&-
+	    ;;
+	P)  opt=$(printf '%s' "${opt#*P}" "${opt%%P*}") &&
+	    arg_paste=$(printf '%s\n' $objdir/*.svg | sed '/^$/ d; s/^.*\///; s/\..*$//' | dmenu -i -l 5 -p "Choose objects: ") &&
+	    opt_paste="-P $arg_paste"
+	    ;;
+	O)  opt=$(printf '%s' "${opt#*O}" "${opt%%O*}") &&
+	    arg_save=$(printf '%s\n' $objdir/*.svg | sed '/^$/ d; s/^.*\///; s/\..*$//' | dmenu -i -l 5 -p "Overwrite Object name: ") &&
+	    opt_save="-O $arg_save"
+	    ;;
+	o)  action='ctrl+v' ;;
+    esac
+done
+
+opt="-$(printf '%s' "$opt" | tr -d ' ')"
+printf '%s' "$opt" | grep '[A-Za-z]' || opt=
+
+inkstyle $opt $opt_sc $opt_fc $opt_save $opt_paste
+xdotool key ${action:-ctrl+shift+v}

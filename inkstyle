@@ -5,7 +5,7 @@
 usage () {
 cat << 	EOF
 Usage:
-inkstyle [OPTIONS] [ARGS]
+inkstyle [OPTIONS] ([ARGS])
 
 Help Options:
   -h					Show help options
@@ -16,8 +16,8 @@ Style Options:
   -F, 					Fill with middle opacity
   -b, 					Fill with high opacity
   -B, 					Fill with perfect opacity
-  -c, 					Change stroke color, require argument
-  -C, 					Change fill color, require argument
+  -c, 					Change stroke color, [ARG=color]
+  -C, 					Change fill color, [ARG=color]
   -d, 					Dash stroke style 1
   -D, 					Dash stroke style 2
   -x, 					Dash stroke style 3
@@ -27,6 +27,10 @@ Style Options:
   -t, 					Change stroke to thick width
   -T, 					Change stroke to very thick width
   -r, 					Restore to default style
+  -p,					Save object in clipboard (No overwrite), [ARG=imgname]
+  -O,					Save object in clipboard (Overwrite), [ARG=imgname]
+  -P,					Paste object to clipboard, [ARG=imgname]
+  -o,					Assign action to "paste object" (Default is "paste in style")
 EOF
 }
 
@@ -36,7 +40,7 @@ w='0.56'
 calc () { awk "BEGIN { print $*}"; }
 
 # Options and arguments
-while getopts "c:C:dDxXfFbBaAwWtTrh" result; do
+while getopts "c:C:dDxXfFbBaAwWtTroO:p:P:h" result; do
     case "${result}" in
 	h) usage && exit ;;
 	a) marker_end="Arrow1Mend"; keeplist="${keeplist} a";;
@@ -56,8 +60,10 @@ while getopts "c:C:dDxXfFbBaAwWtTrh" result; do
 	t) stroke_width=$(calc 3*$w); keeplist="${keeplist} t" ;;
 	T) stroke_width=$(calc 4*$w); keeplist="${keeplist} T" ;;
 	r) keeplist="${keeplist} r" ;;
-	\?) printf "Invalid option: -%s\\n" "$OPTARG"; exit 1 ;;
-	:) echo "Option -$OPTARG requires an argument."; exit 1 ;;
+	p) objname=${OPTARG}; objdir="${XDG_CONFIG_HOME:-$HOME/.config}/inkstyle/objects"; keeplist="${keeplist} p" ;;
+	P) objname=${OPTARG}; objdir="${XDG_CONFIG_HOME:-$HOME/.config}/inkstyle/objects"; keeplist="${keeplist} P" ;;
+	o) action='ctrl+v' ;;
+	O) objname=${OPTARG}; objdir="${XDG_CONFIG_HOME:-$HOME/.config}/inkstyle/objects"; keeplist="${keeplist} O" ;;
     esac
 done
 
@@ -87,7 +93,7 @@ arrow () {
 	'</defs>')"
 }
 
-style () {
+action () {
     style=
     for element in $keeplist; do
 	case $element in
@@ -98,6 +104,15 @@ style () {
 	    c) style=$(printf '%s\n' "$style" "stroke:$stroke_color;") ;;
 	    w|W|t|T) style=$(printf '%s\n' "$style" "stroke-width:$(calc $stroke_width | tr ' ' ',');") ;;
 	    d|D|x|X) style=$(printf '%s\n' "$style" "stroke-dasharray:$(calc $stroke_dash | tr ' ' ',');") ;;
+	    p) [ -d "$objdir" ] || mkdir -p "$objdir";
+		clip=$(xclip -selection clipboard -t image/x-inkscape-svg -o)
+		[ "$(printf '%s' "$clip" | grep -E "<svg|<\/svg>")" = "$(printf '%s\n' "<svg" "</svg>")" ] &&
+		    [ ! -f "$objdir"/"$objname".svg ] &&
+		    printf '%s' "$clip"	> "$objdir"/"$objname".svg ||
+		    echo "Object exists, do nothing." ;;
+	    O) [ -d "$objdir" ] || mkdir -p "$objdir";
+		xclip -selection clipboard -t image/x-inkscape-svg -o > "$objdir"/"$objname".svg ;;
+	    P) [ -f "$objdir"/"$objname".svg ] && xclip -selection clipboard -t image/x-inkscape-svg -i "$objdir"/"$objname".svg || exit 1 ;;
 	esac
     done
 }
@@ -124,6 +139,4 @@ template () {
 
 # Main #
 
-style
-arrow
-template
+[ -z "$(printf '%s' "$keeplist" | grep -E "p|P")" ] && action && arrow && template || action
